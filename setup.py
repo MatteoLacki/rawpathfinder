@@ -16,5 +16,6 @@ setup(  name='rawpathfinder',
                      'Topic :: Scientific/Engineering :: Chemistry',
                      'Programming Language :: Python :: 3.6',
                      'Programming Language :: Python :: 3.7'],
-        # install_requires=['numpy']
+        install_requires=['flask'],
+        scripts=['bin/run.py', 'bin/query.py']
 )
