@@ -1,7 +1,7 @@
 import argparse
 import pathlib
 import requests
-
+import pprint
 
 cli = argparse.ArgumentParser(description="Facade for Pipeator.")
 cli.add_argument("paths",
@@ -15,3 +15,5 @@ cli.add_argument("--port", default=8958,
 args = cli.parse_args()
 
 res = requests.post(f"http://{args.host}:{args.port}/find", json={"query":args.paths})
+
+pprint.pprint(res.json())

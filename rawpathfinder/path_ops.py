@@ -34,5 +34,5 @@ def match_names_to_files(
     Result:
         dict: A mapping between querried files and their unix paths. If a file is not found, empty string is returned.
     """
-    return {q: found_files.get(q, "") for q in query}
+    return {q: str(found_files.get(q, "")) for q in query}
 

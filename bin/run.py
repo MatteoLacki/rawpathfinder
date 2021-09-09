@@ -27,8 +27,9 @@ args = cli.parse_args()
 
 mountpoint = pathlib.Path(args.mountpoint)    
 assert mountpoint.exists(), f"Mountpoint '{mountpoint}' does not exist."
-assert find_existing_files(mountpoint, args.patterns), "No folders/files are found."
 
+existing_files = find_existing_files(mountpoint, args.patterns)
+assert existing_files, "No folders/files are found."
 
 
 app = Flask(__name__)
@@ -44,10 +45,6 @@ def find():
         exisiting_files = find_existing_files(mountpoint, args.patterns)
         found_matches = match_names_to_files(query, exisiting_files)
         if args.debug:
-            print(query)
-            print(mountpoint)
-            print(args.patterns)
-            print(exisiting_files)
             print(found_matches)
         return found_matches
 
