@@ -2,7 +2,7 @@ import argparse
 from flask import Flask, jsonify, request
 import pathlib
 
-from rawpathfinder.path_ops import find_existing_files, match_names_to_files
+from rawpathfinder.path_ops import iter_glob, iter_match_query_patterns_to_paths
 
 
 
@@ -10,9 +10,9 @@ cli = argparse.ArgumentParser(description="Facade for Pipeator.")
 cli.add_argument("--mountpoint",
                  default="/mnt/ms/",
                  help="Where is the folder mounted.")
-cli.add_argument("--patterns",
+cli.add_argument("--path_patterns",
                  nargs="+",
-                 default=["*/rawdata/*/*/*.d"],
+                 default=["*/rawdata/*/*/*.d", "*/rawdata/*/*/*.raw"],
                  help="Where is the folder mounted.")
 cli.add_argument("--host", default="0.0.0.0",
                  help="Host in the IPv4 convention.")
@@ -28,8 +28,10 @@ args = cli.parse_args()
 mountpoint = pathlib.Path(args.mountpoint)    
 assert mountpoint.exists(), f"Mountpoint '{mountpoint}' does not exist."
 
-existing_files = find_existing_files(mountpoint, args.patterns)
-assert existing_files, "No folders/files are found."
+try:
+    next(iter_glob(args.mountpoint, args.path_patterns))
+except StopIteration:
+    raise Exception("No files/folders at the given location.")
 
 
 app = Flask(__name__)
@@ -41,11 +43,9 @@ def index():
 @app.route("/find", methods=["POST"])
 def find():
     if request.is_json:
-        query = request.get_json()["query"]
-        exisiting_files = find_existing_files(mountpoint, args.patterns)
-        found_matches = match_names_to_files(query, exisiting_files)
-        if args.debug:
-            print(found_matches)
+        query_patterns = request.get_json()["query"]
+        paths = set(iter_glob(args.mountpoint, args.path_patterns))
+        found_matches = dict(iter_match_query_patterns_to_paths(query_patterns, paths))
         return found_matches
 
 app.run(debug=args.debug,
