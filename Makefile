@@ -14,7 +14,7 @@ upload_pypi:
 py:
 	ve_rawpathfinder/bin/ipython
 run:	
-	ve_rawpathfinder/bin/python bin/run.py --debug
+	ve_rawpathfinder/bin/python bin/run.py
 
 test_query:
 	ve_rawpathfinder/bin/python bin/query.py M210903* M210903_099_1_1_4795.d M210903_108_1_1_4804.d --host 192.168.1.209 --port 8958

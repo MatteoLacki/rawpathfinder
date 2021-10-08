@@ -12,7 +12,7 @@ cli.add_argument("--mountpoint",
                  help="Where is the folder mounted.")
 cli.add_argument("--path_patterns",
                  nargs="+",
-                 default=["*/rawdata/*/*/*.d", "*/rawdata/*/*/*.raw"],
+                 default=["*/rawdata/*/RAW/*.d", "*/rawdata/*/RAW/*.raw", "*/rawdata/*/ARCHIVIERT/*/*.d", "*/rawdata/*/ARCHIVIERT/*/*.d"],
                  help="Where is the folder mounted.")
 cli.add_argument("--host", default="0.0.0.0",
                  help="Host in the IPv4 convention.")
@@ -44,6 +44,8 @@ def index():
 def find():
     if request.is_json:
         query_patterns = request.get_json()["query"]
+        if isinstance(query_patterns, str):
+            query_patterns = [query_patterns]
         paths = set(iter_glob(args.mountpoint, args.path_patterns))
         found_matches = dict(iter_match_query_patterns_to_paths(query_patterns, paths))
         return found_matches
