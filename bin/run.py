@@ -1,31 +1,39 @@
 import argparse
 from flask import Flask, jsonify, request
+import glob
 import pathlib
 
-from rawpathfinder.path_ops import iter_glob, iter_match_query_patterns_to_paths
-
+from rawpathfinder.path_ops import (
+    iter_glob,
+    iter_match_query_patterns_to_paths,
+    iter_paths,
+    iter_path_patterns,
+)
 
 
 cli = argparse.ArgumentParser(description="Facade for Pipeator.")
-cli.add_argument("--mountpoint",
-                 default="/mnt/ms/",
-                 help="Where is the folder mounted.")
-cli.add_argument("--path_patterns",
-                 nargs="+",
-                 default=["*/rawdata/*/RAW/*.d", "*/rawdata/*/RAW/*.raw", "*/rawdata/*/ARCHIVIERT/*/*.d", "*/rawdata/*/ARCHIVIERT/*/*.d"],
-                 help="Where is the folder mounted.")
-cli.add_argument("--host", default="0.0.0.0",
-                 help="Host in the IPv4 convention.")
-cli.add_argument("--port", default=8958,
-                 help="Port to listen to.")
-cli.add_argument("--debug", action="store_true",
-                 help="Run in debug mode.")
-cli.add_argument("--notthreaded", action="store_false",
-                 help="Run with single thread.")
+cli.add_argument(
+    "--mountpoint", default="/mnt/ms/", help="Where is the folder mounted."
+)
+cli.add_argument(
+    "--path_patterns",
+    nargs="+",
+    default=[
+        "*/rawdata/*/RAW/*.d",
+        "*/rawdata/*/RAW/*.raw",
+        "*/rawdata/*/ARCHIVIERT/*/*.d",
+        "*/rawdata/*/ARCHIVIERT/*/*.d",
+    ],
+    help="Where is the folder mounted.",
+)
+cli.add_argument("--host", default="0.0.0.0", help="Host in the IPv4 convention.")
+cli.add_argument("--port", default=8958, help="Port to listen to.")
+cli.add_argument("--debug", action="store_true", help="Run in debug mode.")
+cli.add_argument("--notthreaded", action="store_false", help="Run with single thread.")
 args = cli.parse_args()
 
 
-mountpoint = pathlib.Path(args.mountpoint)    
+mountpoint = pathlib.Path(args.mountpoint)
 assert mountpoint.exists(), f"Mountpoint '{mountpoint}' does not exist."
 
 try:
@@ -36,9 +44,11 @@ except StopIteration:
 
 app = Flask(__name__)
 
+
 @app.route("/")
 def index():
     return "rawpathfinder operational"
+
 
 @app.route("/find", methods=["POST"])
 def find():
@@ -50,8 +60,13 @@ def find():
         found_matches = dict(iter_match_query_patterns_to_paths(query_patterns, paths))
         return found_matches
 
-app.run(debug=args.debug,
-        host=args.host,
-        port=args.port,
-        threaded=args.notthreaded)
 
+@app.route("/search/<path:pattern>")
+def search(pattern):
+    print(pattern)
+    res = list(iter_paths(mountpoint, iter_path_patterns(pattern)))
+    print(res)
+    return jsonify(res)
+
+
+app.run(debug=args.debug, host=args.host, port=args.port, threaded=args.notthreaded)

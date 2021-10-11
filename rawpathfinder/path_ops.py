@@ -1,6 +1,10 @@
 import fnmatch
+import glob
+import itertools
 import pathlib
-from typing import Iterator, Dict, Tuple, Set, List
+import re
+from typing import Iterator, Iterable, Dict, Tuple, Set, List
+
 
 
 def iter_glob(mountpoint: str, patterns: List[str]) -> Iterator[pathlib.Path]:
@@ -26,6 +30,36 @@ def iter_match_query_patterns_to_paths(
         for path in paths:
             if fnmatch.fnmatch(path.name, query_pattern):
                 yield str(path), query_pattern
+
+
+def iter_shuffle(A: List[str], B: List[str]) -> Iterator[str]:
+    min_len = min(len(A),len(B))
+    for a, b in zip(A[:min_len], B[:min_len]):
+        yield a
+        yield b
+    if len(A) > len(B):
+        yield from A[len(B):]
+    else:
+        yield from B[len(A):]
+
+
+def iter_path_patterns(
+    general_path_pattern: str,
+    pattern_inside_brackets: re.Pattern = re.compile(r"\[(.*?)\]"),
+    pattern: re.Pattern = re.compile(r"\[.*?\]")
+) -> Iterator[str]:
+    groups = re.findall(pattern_inside_brackets, general_path_pattern)
+    split_groups = [g.split('|') for g in groups]
+    other_strings = re.split(pattern, general_path_pattern)
+    for choice in itertools.product(*split_groups, repeat=1):
+        yield "".join(iter_shuffle(other_strings, choice))
+
+
+def iter_paths(mountpoint: pathlib.Path, path_patterns: Iterable[str]):
+    for glob_path_pattern in path_patterns:
+        glob_pattern = str(mountpoint/glob_path_pattern)
+        yield from glob.iglob(glob_pattern)
+
 
 if __name__ == '__main__':
     import pathlib
