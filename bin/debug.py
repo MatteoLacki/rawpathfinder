@@ -26,4 +26,5 @@ import pprint
 
 res = requests.get(r"http://192.168.1.209:8959/search/old/rawdata/gutamine/[ARCHIVIERT/*/*.d|RAW/*.d]")
 
+res = requests.get(r"http://192.168.1.209:8958/search/old/rawdata/gutamine/[ARCHIVIERT/*/*.d|RAW/*.d]")
 pprint.pprint(res.json())
